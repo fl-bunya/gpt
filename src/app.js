@@ -31,13 +31,13 @@ function containsManyEmojis(str) {
   const slackCount = slackEmojis ? slackEmojis.length : 0;
 
   const emojiCount = unicodeCount + slackCount;
-  console.log('%capp.js line:34 emojiCount', 'color: #007acc;', emojiCount);
   return emojiCount >= SHRESHOLD;
 }
 
-app.event("app_mention", async ({ event, say }) => {
+// DM
+app.message(async ({ message, say }) => {
   try {
-    const { text, channel, thread_ts, ts } = event;
+    const { text, channel, thread_ts, ts, user } = message;
 
     const replies = await app.client.conversations.replies({
       channel,
@@ -52,7 +52,41 @@ app.event("app_mention", async ({ event, say }) => {
     });
 
     const prompt = text.replace(/<@.*>/, "").trim();
-    const newReply = await chat(prompt, history);
+    const newReply = await chat(prompt, history, user);
+
+    await say({
+      text: newReply,
+      thread_ts: thread_ts || ts,
+      icon_emoji: containsManyEmojis(newReply) ? ":kissing_heart:" : null,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    await say({
+      text: `Sorry, an error occurred: ${error.message}`,
+      thread_ts: message.ts,
+    });
+  }
+});
+
+// メンション
+app.event("app_mention", async ({ event, say }) => {
+  try {
+    const { text, channel, thread_ts, ts, user } = event;
+
+    const replies = await app.client.conversations.replies({
+      channel,
+      ts: thread_ts || ts,
+    });
+    const history = replies.messages.map((message) => {
+      return {
+        user: message?.user,
+        text: message?.text,
+        bot_id: message?.bot_id,
+      }
+    });
+
+    const prompt = text.replace(/<@.*>/, "").trim();
+    const newReply = await chat(prompt, history, user);
 
     await say({
       text: newReply,

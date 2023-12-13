@@ -25,7 +25,7 @@ const ORDER_OJISAN = `
 ## おじさん構文のルール
 語尾はが「ね」「よ」「な」の場合は不自然にならない範囲で「ネ」「ヨ」「ナ」などカタカナに変える。
 相手を思いやる。
-相手の呼び名は〇〇チャンとする。
+相手の呼び名は"〇〇チャン"とする。
 語尾や文中に絵文字を過剰に使う。一つの文章に最低4個以上、絵文字を使う。
 相手を褒めて食事に連れていこうとするが、ナンチャッテでごまかす。
 `;
@@ -35,12 +35,13 @@ const ORDER_EMOJI = `
 絵文字のみで返信してください。
 `;
 
-const getOrder = async (prompt) => {
+const getOrder = async (prompt, user) => {
   const me = process.env.SLACK_BOT_ID;
-  const DEFAULT_ORDER = `## 前提\nここはslackのスレッドでのやりとりです。<@${me}>はあなたのことです。\n`;
+  const you = user;
+  const DEFAULT_ORDER = `## 前提\nここはslackのスレッドでのやりとりです。<@${me}>はあなたのことです。<@${you}>は返信相手のことです。\n`;
 
   const regex_ojisan = /^(おじ|oji)/;
-  if (regex_ojisan.test(prompt)) return DEFAULT_ORDER + ORDER_OJISAN;
+  if (regex_ojisan.test(prompt)) return DEFAULT_ORDER + ORDER_OJISAN.replace(/〇〇/g, `<@${user}>`);
 
   const regex_emoji = /^(絵文字|emoji)/;
   if (regex_emoji.test(prompt)) return DEFAULT_ORDER + ORDER_EMOJI;
@@ -58,12 +59,20 @@ const getMessages = async (history) => {
   return messages;
 };
 
-exports.chat = async function (prompt, history) {
-  const order = await getOrder(prompt);
+const sanitize = (str) => {
+  // 自分にメンションして無限ループする時がある
+  const me = process.env.SLACK_BOT_ID;
+  const regex = new RegExp(`<@${me}>`, 'g');
+  const sanitized = str.replace(regex, "");
+  return sanitized;
+}
+
+exports.chat = async function (prompt, history, user) {
+  const order = await getOrder(prompt, user);
   const systemMessage = [{"role": "system", "content": order}];
   const userMessages = await getMessages(history);
   const messages = [...systemMessage, ...userMessages]
   const reply = await fetchReplyFromAI(messages);
-  const sanitizedReply = reply.replace(/<@.*>/g, "").trim(); // 自分にメンションして無限ループする時がある
+  const sanitizedReply = sanitize(reply);
   return sanitizedReply;
 };

@@ -15,7 +15,7 @@ like this
 https://c1a9-118-0-46-208.ngrok-free.app/slack/events
 
 After debugging, change it back to  
-https://3e4r345qyb.execute-api.ap-northeast-1.amazonaws.com/dev/slack/events
+https://g02a5v1enh.execute-api.ap-northeast-1.amazonaws.com/dev/slack/events
 
 ## release
 
