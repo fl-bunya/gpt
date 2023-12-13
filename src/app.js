@@ -1,7 +1,7 @@
-require('dotenv').config();
-const { App, AwsLambdaReceiver } = require('@slack/bolt');
-const { dalle } = require('./dalle');
-const { summarize, CHANNELS, RSS_CHANNELS } = require('./summarize');
+require("dotenv").config();
+const { App, AwsLambdaReceiver } = require("@slack/bolt");
+const { dalle } = require("./dalle");
+const { summarize, CHANNELS, RSS_CHANNELS } = require("./summarize");
 
 // Initialize your custom receiver
 const awsLambdaReceiver = new AwsLambdaReceiver({
@@ -18,9 +18,10 @@ const app = new App({
 module.exports.handler = async (event, context, callback) => {
   const handler = await awsLambdaReceiver.start();
   return handler(event, context, callback);
-}
+};
 
-const hasUrl = (text) => (typeof text == 'string') && text.match(/https?:\/\/[^\s]+/);
+const hasUrl = (text) =>
+  typeof text == "string" && text.match(/https?:\/\/[^\s]+/);
 
 // 投稿検知
 app.message(async ({ message, say }) => {
@@ -43,29 +44,29 @@ app.message(async ({ message, say }) => {
     }
 
     // DM
-    if (message.channel_type !== 'im' || message.bot_id) return;
+    if (message.channel_type !== "im" || message.bot_id) return;
     hasUrl(prompt)
       ? await summarize(say, prompt, user, channel)
       : await dalle(say, prompt, user, channel);
   } catch (error) {
-    console.error('Error:', error);
+    console.error("Error:", error);
     await say({
-      text: `Sorry, an error occurred: ${error.message}`
+      text: `Sorry, an error occurred: ${error.message}`,
     });
   }
 });
 
 // メンション
-app.event('app_mention', async ({ event, say }) => {
+app.event("app_mention", async ({ event, say }) => {
   try {
-    const prompt = event.text.replace(/<@.*>/, '').trim();
+    const prompt = event.text.replace(/<@.*>/, "").trim();
     if (!prompt) return;
     const { user, channel, ts: thread_ts } = event;
     hasUrl(prompt)
       ? await summarize(say, prompt, user, channel, thread_ts)
       : await dalle(say, prompt, user, channel, thread_ts);
   } catch (error) {
-    console.error('Error:', error);
+    console.error("Error:", error);
     await say({
       text: `Sorry, an error occurred: ${error.message}`,
       thread_ts: event.ts,
@@ -83,4 +84,4 @@ app.use(async (args) => {
   }
 
   await next();
-})
+});

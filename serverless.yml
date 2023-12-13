@@ -1,5 +1,5 @@
 service: serverless-bolt-js
-frameworkVersion: '3'
+frameworkVersion: "3"
 provider:
   name: aws
   runtime: nodejs18.x
