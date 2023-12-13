@@ -34,9 +34,11 @@ function containsManyEmojis(str) {
   return emojiCount >= SHRESHOLD;
 }
 
-// DM
 app.message(async ({ message, say }) => {
   try {
+    // DM時のみ反応
+    if (message.channel_type !== 'im' || message.bot_id) return;
+
     const { text, channel, thread_ts, ts, user } = message;
 
     const replies = await app.client.conversations.replies({
