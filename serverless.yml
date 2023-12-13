@@ -8,6 +8,8 @@ provider:
     SLACK_SIGNING_SECRET: ${env:SLACK_SIGNING_SECRET}
     SLACK_BOT_TOKEN: ${env:SLACK_BOT_TOKEN}
     OPENAI_API_KEY: ${env:OPENAI_API_KEY}
+    SLACK_BOT_ID: ${env:SLACK_BOT_ID}
+    GPT_MODEL: ${env:GPT_MODEL}
 functions:
   slack:
     handler: ./src/app.handler
