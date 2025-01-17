@@ -69,7 +69,7 @@ const sanitize = (str) => {
 
 exports.chat = async function (prompt, history, user) {
   const order = await getOrder(prompt, user);
-  const systemMessage = [{"role": "system", "content": order}];
+  const systemMessage = [{"role": "user", "content": order}];
   const userMessages = await getMessages(history);
   const messages = [...systemMessage, ...userMessages]
   const reply = await fetchReplyFromAI(messages);
